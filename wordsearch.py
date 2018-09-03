@@ -1,31 +1,33 @@
 import random
 
-width = 20
-height = 20
-
-if width < 20:
-    width = 20
-if height < 20:
-    height = 20
-
 
 class Cell:
     """Contains information about a single cell in
     the board"""
 
-    def __init__(self, letter, **kwargs):
+    def __init__(self, letter, is_word=False, is_beginning=False, d=None):
         self.letter = letter
-        self.is_word = False
-        self.is_beginning = False
-        self.d = None  # Word direction
+        self.is_word = is_word
+        self.is_beginning = is_beginning
+        self.d = d  # Word direction
+
+    def __repr__(self):
+        return str({
+            'letter': self.letter,
+            'is_word': self.is_word,
+            'is_beginning': self.is_beginning,
+            'd': self.d
+        })
+
+    def __str__(self):
+        return str(self.letter)
 
 
-def load_words():
-    global width, height
+def load_words(w, h):
     with open('./lists/wordlist.txt') as f:
         words = f.read().splitlines()
-    maxlength = min(width - 9, height - 9)
-    minlength = 5
+    maxlength = min(w, h)
+    minlength = 4
     wordlist = []
     for word in words:
         if minlength < len(word) < maxlength:
@@ -33,12 +35,15 @@ def load_words():
     return wordlist
 
 
-def boardgen(w, h):
-    wordlist = load_words()
+def boardgen(w, h, max=None):
+    wordlist = load_words(w, h)
     board = []
     for i in range(h):
         board.append([Cell(random.choice(list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'))) for _ in range(w)])
-    wordcount = (w * h) * 0.05
+    if max is None:
+        wordcount = (w * h) * 0.05
+    else:
+        wordcount = max
     added = []
     while len(added) != wordcount and len(wordlist) > 0:
         word = random.choice(wordlist)
@@ -52,31 +57,33 @@ def boardgen(w, h):
             x = int(random.choice(range(w)))
         c = board[y][x]
         xy = [x, y]
-        if c.is_word is False:  # TODO: Also check other qualifying factors
-            a = True
-            wl = len(word)
-            while a is True and wl > 0:
-                c = board[y][x]
-                # TODO: Make the following if-statements allow words to overlap the beginnings of words going in the other direction
-                if c.d is not d and d is 'v':
+
+        a = True
+        wl = len(word)
+        while a is True and wl > 0:
+            c = board[y][x]
+            if c.is_word is True and c.letter.lower() is not word[len(word) - wl].lower():
+                a = False
+                # print('Word does not fit')
+            if c.d is not d and d is 'v':
+                y += 1
+            elif c.d is not d and d is 'h':
+                x += 1
+            wl -= 1
+        if a is True:
+            x = xy[0]
+            y = xy[1]
+            first = True
+            for j in list(word):
+                if first is True:
+                    board[y][x] = Cell(j.upper(), True, True, d)
+                else:
+                    board[y][x] = Cell(j.upper(), True, False, d)
+                first = False
+                if d is 'v':
                     y += 1
-                elif c.d is not d and d is 'h':
+                if d is 'h':
                     x += 1
-                wl -= 1
-            if a is True:
-                x = xy[0]
-                y = xy[1]
-                first = True
-                for j in list(word):
-                    if first is True:
-                        board[y][x] = Cell(letter=j.upper(), is_word=True, is_beginning=True, d=d)
-                    else:
-                        board[y][x] = Cell(letter=j.upper(), is_word=True, is_beginning=False, d=d)
-                    first = False
-                    if d is 'v':
-                        y += 1
-                    if d is 'h':
-                        x += 1
             added.append(word)
     return board, added
 
@@ -92,7 +99,7 @@ def draw_board(board, words):
     print(str(len(words)) + ' words hidden:\n' + ', '.join(words))
 
 
-def start_game(w=width, h=height):
-    a, b = boardgen(w, h)
-    draw_board(a, b)
+def start_game(w=20, h=20, max=None):
+    a, b = boardgen(w, h, max)
+    # draw_board(a, b)
     return a, b
