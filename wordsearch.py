@@ -1,5 +1,4 @@
 import random
-from pprint import pprint
 
 width = 20
 height = 20
@@ -21,22 +20,9 @@ class Cell:
         self.d = None  # Word direction
 
 
-# @property
-# def dump(self):
-#     return {
-#         'name': self.name,
-#         'model': self.model,
-#         'owner': self.owner,
-#         'hull': self.hull,
-#         'shields': self.shields,
-#         'power': self.power,
-#         'shieldstatus': self.shieldstatus
-#     }
-
-
 def load_words():
     global width, height
-    with open('wordlist.txt') as f:
+    with open('./lists/wordlist.txt') as f:
         words = f.read().splitlines()
     maxlength = min(width - 9, height - 9)
     minlength = 5
@@ -51,12 +37,12 @@ def boardgen(w, h):
     wordlist = load_words()
     board = []
     for i in range(h):
-        board.append([Cell(random.choice(list('abcdefghijklmnopqrstuvwxyz'))) for _ in range(w)])
-
+        board.append([Cell(random.choice(list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'))) for _ in range(w)])
     wordcount = (w * h) * 0.05
     added = []
-    while len(added) != wordcount:
+    while len(added) != wordcount and len(wordlist) > 0:
         word = random.choice(wordlist)
+        wordlist.remove(word)
         d = random.choice(['v', 'h'])  # The direction of the word (vertical or horizontal)
         y = 0
         x = 0
@@ -66,8 +52,7 @@ def boardgen(w, h):
             x = int(random.choice(range(w)))
         c = board[y][x]
         xy = [x, y]
-        if c.is_word is False:
-            # TODO: Also check other qualifying factors
+        if c.is_word is False:  # TODO: Also check other qualifying factors
             a = True
             wl = len(word)
             while a is True and wl > 0:
@@ -84,9 +69,9 @@ def boardgen(w, h):
                 first = True
                 for j in list(word):
                     if first is True:
-                        board[y][x] = Cell(letter=j, is_word=True, is_beginning=True, d=d)
+                        board[y][x] = Cell(letter=j.upper(), is_word=True, is_beginning=True, d=d)
                     else:
-                        board[y][x] = Cell(letter=j, is_word=True, is_beginning=False, d=d)
+                        board[y][x] = Cell(letter=j.upper(), is_word=True, is_beginning=False, d=d)
                     first = False
                     if d is 'v':
                         y += 1
@@ -104,9 +89,10 @@ def draw_board(board, words):
             o += j.letter
         print(''.join(o))
     print()
-    print(str(len(words))+' words hidden:\n' + ', '.join(words))
+    print(str(len(words)) + ' words hidden:\n' + ', '.join(words))
 
 
-ginfo = [''] * 2
-ginfo[0], ginfo[1] = boardgen(width, height)
-draw_board(ginfo[0], ginfo[1])
+def start_game(w=width, h=height):
+    a, b = boardgen(w, h)
+    draw_board(a, b)
+    return a, b

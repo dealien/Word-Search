@@ -1,0 +1,30 @@
+body {
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+p {
+    margin: 0px 0px 5px 0px;
+}
+
+tr,
+td {
+    height: 20px;
+    width: 20px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #9E9E9E;
+}
+
+table {
+    border-collapse: collapse;
+    font-family: Consolas, monaco, monospace;
+    font-weight: bold;
+}
+
+.row {
+    display: flex;
+}
+
+.column {
+    flex: 50%;
+}
